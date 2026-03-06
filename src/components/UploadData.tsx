@@ -67,7 +67,7 @@ const UploadData = ({ semester }: UploadDataProps) => {
         let payload: any = { semester_id: semester.id };
         
         if (id === 3) {
-          endpoint = '/api/upload/courses';
+          endpoint = '/api/upload-courses';
           payload.courses = excelData.map(row => {
             const name = row.course_name || row.CourseName || row.Title || row['Course Name'] || row['Course Title'] || row.course_id || row.CourseID || row.CourseCode || row['Course Id'] || row['Course ID'] || row['Course Code'];
             const id = row.course_id || row.CourseID || row.CourseCode || row['Course Id'] || row['Course ID'] || row['Course Code'] || name;
@@ -78,7 +78,7 @@ const UploadData = ({ semester }: UploadDataProps) => {
             };
           });
         } else if (id === 4) {
-          endpoint = '/api/upload/enrollments';
+          endpoint = '/api/upload-enrollments';
           payload.enrollments = excelData.map(row => {
             const name = row.course_name || row.CourseName || row.Title || row['Course Name'] || row['Course Title'] || row.course_id || row.CourseID || row.CourseCode || row['Course Id'] || row['Course ID'] || row['Course Code'];
             return {
@@ -89,7 +89,7 @@ const UploadData = ({ semester }: UploadDataProps) => {
             };
           });
         } else if (id === 5) {
-          endpoint = '/api/upload/registrations';
+          endpoint = '/api/upload-registrations';
           payload.registrations = excelData.map(row => {
             const name = row.course_name || row.CourseName || row.Title || row['Course Name'] || row['Course Title'] || row.course_id || row.CourseID || row.CourseCode || row['Course Id'] || row['Course ID'] || row['Course Code'];
             return {
@@ -99,7 +99,7 @@ const UploadData = ({ semester }: UploadDataProps) => {
             };
           });
         } else if (id === 6) {
-          endpoint = '/api/upload/results';
+          endpoint = '/api/upload-results';
           payload.results = excelData.map(row => {
             const name = row.course_name || row.CourseName || row.Title || row['Course Name'] || row['Course Title'] || row.course_id || row.CourseID || row.CourseCode || row['Course Id'] || row['Course ID'] || row['Course Code'];
             const score = row.score || row.Score || row.Marks || row['Final Score'] || row['Score'] || '0';

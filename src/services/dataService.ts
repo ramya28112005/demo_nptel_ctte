@@ -20,7 +20,7 @@ export const dataService = {
   },
 
   async selectSemester(id: number): Promise<{ success: boolean }> {
-    const res = await fetch(`${API_BASE}/semesters/select`, {
+    const res = await fetch(`${API_BASE}/semesters-select`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id })
@@ -69,7 +69,7 @@ export const dataService = {
   async saveHods(hods: { id: number; email: string }[]): Promise<{ success: boolean }> {
     try { localStorage.setItem('hod_emails', JSON.stringify(hods)); } catch (e) { /* ignore */ }
     try {
-      const res = await fetch(`${API_BASE}/hod/setup`, {
+      const res = await fetch(`${API_BASE}/hod-setup`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hods })
       });
       if (!res.ok) throw new Error('Failed to save HODs');
@@ -81,7 +81,7 @@ export const dataService = {
 
   async getDashboardStats(): Promise<{ enrolled: number; registered: number; certified: number }> {
     try {
-      const res = await fetch(`${API_BASE}/dashboard/stats`);
+      const res = await fetch(`${API_BASE}/dashboard-stats`);
       if (!res.ok) throw new Error('Failed to fetch stats');
       return res.json();
     } catch (e) {
@@ -90,7 +90,7 @@ export const dataService = {
   },
 
   async getReportData(): Promise<{ courses: CourseStats[] }> {
-    const res = await fetch(`${API_BASE}/reports/final`);
+    const res = await fetch(`${API_BASE}/reports-final`);
     if (!res.ok) throw new Error('Failed to fetch report data');
     return res.json();
   },
