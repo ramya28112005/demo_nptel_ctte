@@ -14,14 +14,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         fs.writeFileSync(path.join(UPLOADS_DIR, safeFileName), Buffer.from(base64, 'base64'));
       }
 
+      // Delete existing courses for this semester
+      db.prepare("DELETE FROM courses WHERE semester_id = ?").run(semester_id);
+
       const insert = db.prepare("INSERT OR REPLACE INTO courses (semester_id, dept_id, course_id, course_name) VALUES (?, ?, ?, ?)");
+      let insertedCount = 0;
+      
       const transaction = db.transaction((data) => {
         for (const c of data) {
-          insert.run(semester_id, c.dept_id, c.course_id, c.course_name);
+          // Validate required fields
+          if (!c.course_id || !c.course_name) continue;
+          
+          const courseId = (c.course_id || '').toString().trim();
+          const courseName = (c.course_name || '').toString().trim();
+          
+          if (!courseId || !courseName) continue;
+          
+          try {
+            insert.run(semester_id, c.dept_id || null, courseId, courseName);
+            insertedCount++;
+          } catch (err) {
+            console.error('Failed to insert course:', err);
+          }
         }
       });
       transaction(courses);
-      res.status(200).json({ success: true });
+      
+      // Verify actual count in database
+      const actualCount = db.prepare("SELECT COUNT(*) as count FROM courses WHERE semester_id = ?").get(semester_id) as any;
+      res.status(200).json({ success: true, rows: actualCount.count, processed: courses.length });
     } catch (error) {
       res.status(500).json({ error: 'Failed to upload courses' });
     }

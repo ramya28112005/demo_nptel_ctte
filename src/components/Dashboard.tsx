@@ -10,19 +10,12 @@ import {
   ResponsiveContainer,
   Tooltip
 } from 'recharts';
-import { Semester } from '../types';
+import { Semester, Stats } from '../types';
 import { dataService } from '../services/dataService';
+
 interface DashboardProps {
   semester: Semester | null;
-}
-
-interface Stats {
-  enrolled: number;
-  enrolledRows?: number;
-  registered: number;
-  registeredRows?: number;
-  certified: number;
-  certifiedRows?: number;
+  refresh?: number;
 }
 
 // simple counter that animates from 0 to target value
@@ -46,19 +39,26 @@ const AnimatedCounter: React.FC<{ value: number }> = ({ value }) => {
   return <>{display}</>;
 };
 
-const Dashboard = ({ semester }: DashboardProps) => {
-  const [stats, setStats] = useState<Stats>({ enrolled: 0, registered: 0, certified: 0 });
+const Dashboard = ({ semester, refresh }: DashboardProps) => {
+  const [stats, setStats] = useState<Stats>({ courses: 0, enrolled: 0, registered: 0, certified: 0 });
 
   useEffect(() => {
     if (semester) {
-      dataService.getDashboardStats().then(res => {
-        // API now returns both distinct counts and raw row counts
-        setStats(res as Stats);
-        // celebrate when we get fresh numbers
-        confetti({ particleCount: 120, spread: 60, origin: { y: 0.6 } });
-      });
+      dataService.getDashboardStats()
+        .then(res => {
+          // API now returns both distinct counts and raw row counts
+          setStats(res as Stats);
+          // celebrate when we get fresh numbers
+          confetti({ particleCount: 120, spread: 60, origin: { y: 0.6 } });
+        })
+        .catch(err => {
+          console.error('Dashboard stats fetch failed:', err);
+          setStats({ courses: 0, enrolled: 0, registered: 0, certified: 0 });
+        });
+    } else {
+      setStats({ courses: 0, enrolled: 0, registered: 0, certified: 0 });
     }
-  }, [semester]);
+  }, [semester, refresh]);
 
   const pieData = [
     { name: 'Enrolled', value: stats.enrolled, color: '#4f46e5' },

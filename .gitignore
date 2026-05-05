@@ -6,3 +6,6 @@ coverage/
 *.log
 .env*
 !.env.example
+uploads/
+nptel_system.db
+check_db.js

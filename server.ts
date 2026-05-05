@@ -327,21 +327,11 @@ async function startServer() {
 
   app.get("/api/dashboard/stats", (req, res) => {
     const activeSem = db.prepare("SELECT id FROM semesters WHERE is_active = 1").get();
-    if (!activeSem) return res.json({ error: "No active semester" });
+    if (!activeSem) return res.json({ courses: 0, enrolled: 0, registered: 0, certified: 0 });
 
-    const enrolledStudents = db.prepare("SELECT COUNT(DISTINCT email) as count FROM student_records WHERE semester_id = ? AND module_type = 4").get(activeSem.id);
+    const courseRows = db.prepare("SELECT COUNT(*) as count FROM courses WHERE semester_id = ?").get(activeSem.id);
     const enrolledRows = db.prepare("SELECT COUNT(*) as count FROM student_records WHERE semester_id = ? AND module_type = 4").get(activeSem.id);
-
-    const registeredStudents = db.prepare("SELECT COUNT(DISTINCT email) as count FROM student_records WHERE semester_id = ? AND module_type = 5").get(activeSem.id);
     const registeredRows = db.prepare("SELECT COUNT(*) as count FROM student_records WHERE semester_id = ? AND module_type = 5").get(activeSem.id);
-
-    const certifiedStudents = db.prepare(`
-      SELECT COUNT(DISTINCT email) as count 
-      FROM student_records 
-      WHERE semester_id = ? 
-      AND module_type = 6
-      AND LOWER(status) IN ('certified', 'elite', 'elite + silver', 'elite + gold', 'successfully completed', 'passed', 'elite+silver', 'elite+gold')
-    `).get(activeSem.id);
     const certifiedRows = db.prepare(`
       SELECT COUNT(*) as count 
       FROM student_records 
@@ -351,12 +341,10 @@ async function startServer() {
     `).get(activeSem.id);
 
     res.json({
-      enrolled: enrolledRows.count,
-      enrolledRows: enrolledRows.count,
-      registered: registeredRows.count,
-      registeredRows: registeredRows.count,
-      certified: certifiedRows.count,
-      certifiedRows: certifiedRows.count
+      courses: courseRows?.count ?? 0,
+      enrolled: enrolledRows?.count ?? 0,
+      registered: registeredRows?.count ?? 0,
+      certified: certifiedRows?.count ?? 0
     });
   });
 

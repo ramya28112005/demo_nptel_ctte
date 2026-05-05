@@ -1,4 +1,4 @@
-import { Semester, Department, CourseStats } from '../types';
+import { Semester, Department, CourseStats, Stats } from '../types';
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
@@ -79,20 +79,25 @@ export const dataService = {
     }
   },
 
-  async getDashboardStats(): Promise<{ enrolled: number; registered: number; certified: number }> {
+  async getDashboardStats(): Promise<Stats> {
     try {
-      const res = await fetch(`${API_BASE}/dashboard-stats`);
+      const res = await fetch(`${API_BASE}/dashboard/stats`);
       if (!res.ok) throw new Error('Failed to fetch stats');
       return res.json();
     } catch (e) {
-      return { enrolled: 0, registered: 0, certified: 0 };
+      return { courses: 0, enrolled: 0, registered: 0, certified: 0 };
     }
   },
 
   async getReportData(): Promise<{ courses: CourseStats[] }> {
-    const res = await fetch(`${API_BASE}/reports-final`);
-    if (!res.ok) throw new Error('Failed to fetch report data');
-    return res.json();
+    try {
+      const res = await fetch(`${API_BASE}/reports/final`);
+      if (!res.ok) throw new Error('Failed to fetch report data');
+      return res.json();
+    } catch (e) {
+      console.error('Report data fetch error:', e);
+      return { courses: [] };
+    }
   },
 
   async sendEmail(payload: { to: string; subject: string; text?: string; html?: string; attachments?: any[] }): Promise<{ success: boolean }> {
@@ -110,18 +115,19 @@ export const dataService = {
     }
   },
 
-  async uploadData(endpoint: string, payload: any): Promise<{ success: boolean }> {
+  async uploadData(endpoint: string, payload: any): Promise<{ success: boolean; rows?: number }> {
     try {
-      const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const effectiveEndpoint = endpoint.startsWith('/api') ? endpoint : `${API_BASE}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+      const res = await fetch(effectiveEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       if (!res.ok) throw new Error('Upload failed');
       return res.json();
     } catch (e) {
       try {
         const logs = JSON.parse(localStorage.getItem('upload_logs') || '[]');
-        logs.push({ endpoint, date: new Date().toISOString() });
+        logs.push({ endpoint, date: new Date().toISOString(), error: e instanceof Error ? e.message : String(e) });
         localStorage.setItem('upload_logs', JSON.stringify(logs.slice(-50)));
       } catch (err) { /* ignore */ }
-      return { success: true };
+      return { success: false };
     }
   },
 

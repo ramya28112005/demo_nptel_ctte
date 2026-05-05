@@ -44,19 +44,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         VALUES (?, ?, ?, 5, ?)
       `);
 
+      let insertedCount = 0;
       const transaction = db.transaction((data) => {
         for (const r of data) {
-          const email = r.email.toLowerCase();
+          // Validate required fields
+          if (!r.email || !r.course_name) continue;
+          
+          const email = r.email.toLowerCase().trim();
+          const courseName = (r.course_name || r.course_id || '').trim();
+          
+          if (!email || !courseName) continue;
+
           const match = email.match(/\d+([a-z]+)\d*@/);
           const deptCode = match ? match[1] : null;
           const dept = deptCode ? findDept.get(deptCode) : null;
 
-          const unifiedName = resolveCourseName(semester_id, r.course_id, r.course_name);
-          insertRecord.run(semester_id, email, unifiedName, dept ? dept.id : null);
+          const unifiedName = resolveCourseName(semester_id, r.course_id, courseName);
+          try {
+            insertRecord.run(semester_id, email, unifiedName, dept ? dept.id : null);
+            insertedCount++;
+          } catch (err) {
+            // Skip failed inserts but continue processing
+            console.error('Failed to insert registration:', err);
+          }
         }
       });
       transaction(registrations);
-      res.status(200).json({ success: true, rows: registrations.length });
+      
+      // Verify actual count in database
+      const actualCount = db.prepare("SELECT COUNT(*) as count FROM student_records WHERE semester_id = ? AND module_type = 5").get(semester_id) as any;
+      res.status(200).json({ success: true, rows: actualCount.count, processed: registrations.length });
     } catch (error) {
       res.status(500).json({ error: 'Failed to upload registrations' });
     }

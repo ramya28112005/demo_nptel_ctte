@@ -21,3 +21,13 @@ export interface CourseStats {
   elite_silver: number;
   elite_gold: number;
 }
+
+export interface Stats {
+  courses: number;
+  enrolled: number;
+  enrolledRows?: number;
+  registered: number;
+  registeredRows?: number;
+  certified: number;
+  certifiedRows?: number;
+}

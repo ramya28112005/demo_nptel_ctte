@@ -16,6 +16,7 @@ export default function App() {
   const [showWelcome, setShowWelcome] = useState(true);
   const [activeTab, setActiveTab] = useState('college-info');
   const [currentSemester, setCurrentSemester] = useState<Semester | null>(null);
+  const [dashboardRefresh, setDashboardRefresh] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const fetchCurrentSemester = async () => {
@@ -40,6 +41,8 @@ export default function App() {
     return <Login onLogin={() => setIsLoggedIn(true)} />;
   }
 
+  const refreshDashboard = () => setDashboardRefresh(prev => prev + 1);
+
   return (
     <Layout 
       activeTab={activeTab} 
@@ -51,12 +54,12 @@ export default function App() {
       {activeTab === 'upload-data' && (
         <>
           <SemesterConfig onSemesterChange={fetchCurrentSemester} currentSemester={currentSemester} />
-          <UploadData semester={currentSemester} />
+          <UploadData semester={currentSemester} onUploadComplete={refreshDashboard} />
         </>
       )}
       {activeTab === 'hod-setup' && <HODSetup />}
       {activeTab === 'automation' && <Automation />}
-      {activeTab === 'dashboard' && <Dashboard semester={currentSemester} />}
+      {activeTab === 'dashboard' && <Dashboard semester={currentSemester} refresh={dashboardRefresh} />}
       {activeTab === 'reports' && <Reports semester={currentSemester} />}
     </Layout>
   );

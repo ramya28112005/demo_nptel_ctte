@@ -8,6 +8,7 @@ import { dataService } from '../services/dataService';
 
 interface UploadDataProps {
   semester: Semester | null;
+  onUploadComplete?: () => void;
 }
 
 const MODULES = [
@@ -17,7 +18,7 @@ const MODULES = [
   { id: 6, title: 'Result Excel Upload', desc: 'Smart Match: Filename with Dept Name sends final results to HOD. Others send to all.' },
 ];
 
-const UploadData = ({ semester }: UploadDataProps) => {
+const UploadData = ({ semester, onUploadComplete }: UploadDataProps) => {
   const [uploading, setUploading] = useState<number | null>(null);
   const [sentStatus, setSentStatus] = useState<Record<number, { sent: boolean, time: string }>>({});
   const [depts, setDepts] = useState<Department[]>([]);
@@ -67,7 +68,7 @@ const UploadData = ({ semester }: UploadDataProps) => {
         let payload: any = { semester_id: semester.id };
         
         if (id === 3) {
-          endpoint = '/api/upload-courses';
+          endpoint = '/api/upload/courses';
           payload.courses = excelData.map(row => {
             const name = row.course_name || row.CourseName || row.Title || row['Course Name'] || row['Course Title'] || row.course_id || row.CourseID || row.CourseCode || row['Course Id'] || row['Course ID'] || row['Course Code'];
             const id = row.course_id || row.CourseID || row.CourseCode || row['Course Id'] || row['Course ID'] || row['Course Code'] || name;
@@ -78,7 +79,7 @@ const UploadData = ({ semester }: UploadDataProps) => {
             };
           });
         } else if (id === 4) {
-          endpoint = '/api/upload-enrollments';
+          endpoint = '/api/upload/enrollments';
           payload.enrollments = excelData.map(row => {
             const name = row.course_name || row.CourseName || row.Title || row['Course Name'] || row['Course Title'] || row.course_id || row.CourseID || row.CourseCode || row['Course Id'] || row['Course ID'] || row['Course Code'];
             return {
@@ -89,7 +90,7 @@ const UploadData = ({ semester }: UploadDataProps) => {
             };
           });
         } else if (id === 5) {
-          endpoint = '/api/upload-registrations';
+          endpoint = '/api/upload/registrations';
           payload.registrations = excelData.map(row => {
             const name = row.course_name || row.CourseName || row.Title || row['Course Name'] || row['Course Title'] || row.course_id || row.CourseID || row.CourseCode || row['Course Id'] || row['Course ID'] || row['Course Code'];
             return {
@@ -99,7 +100,7 @@ const UploadData = ({ semester }: UploadDataProps) => {
             };
           });
         } else if (id === 6) {
-          endpoint = '/api/upload-results';
+          endpoint = '/api/upload/results';
           payload.results = excelData.map(row => {
             const name = row.course_name || row.CourseName || row.Title || row['Course Name'] || row['Course Title'] || row.course_id || row.CourseID || row.CourseCode || row['Course Id'] || row['Course ID'] || row['Course Code'];
             const score = row.score || row.Score || row.Marks || row['Final Score'] || row['Score'] || '0';
@@ -202,6 +203,7 @@ const UploadData = ({ semester }: UploadDataProps) => {
       setUploading(null);
       setActiveModuleId(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
+      if (onUploadComplete) onUploadComplete();
     }
   };
 

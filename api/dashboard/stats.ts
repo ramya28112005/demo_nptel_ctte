@@ -7,6 +7,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const activeSem = db.prepare("SELECT id FROM semesters WHERE is_active = 1").get();
       if (!activeSem) return res.status(400).json({ error: "No active semester" });
 
+      const courseRows = db.prepare("SELECT COUNT(*) as count FROM courses WHERE semester_id = ?").get(activeSem.id);
       const enrolledRows = db.prepare("SELECT COUNT(*) as count FROM student_records WHERE semester_id = ? AND module_type = 4").get(activeSem.id);
       const registeredRows = db.prepare("SELECT COUNT(*) as count FROM student_records WHERE semester_id = ? AND module_type = 5").get(activeSem.id);
       const certifiedRows = db.prepare(`
@@ -18,6 +19,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `).get(activeSem.id);
 
       res.status(200).json({
+        courses: courseRows.count,
         enrolled: enrolledRows.count,
         registered: registeredRows.count,
         certified: certifiedRows.count

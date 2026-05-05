@@ -10,6 +10,7 @@ export const handler: Handler = async (event) => {
         body: JSON.stringify({ error: "No active semester" })
       };
 
+      const courseRows = db.prepare("SELECT COUNT(*) as count FROM courses WHERE semester_id = ?").get(activeSem.id);
       const enrolledRows = db.prepare("SELECT COUNT(*) as count FROM student_records WHERE semester_id = ? AND module_type = 4").get(activeSem.id);
       const registeredRows = db.prepare("SELECT COUNT(*) as count FROM student_records WHERE semester_id = ? AND module_type = 5").get(activeSem.id);
       const certifiedRows = db.prepare(`
@@ -24,9 +25,10 @@ export const handler: Handler = async (event) => {
         statusCode: 200,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          enrolled: enrolledRows.count,
-          registered: registeredRows.count,
-          certified: certifiedRows.count
+          courses: courseRows?.count ?? 0,
+          enrolled: enrolledRows?.count ?? 0,
+          registered: registeredRows?.count ?? 0,
+          certified: certifiedRows?.count ?? 0
         })
       };
     } else {
