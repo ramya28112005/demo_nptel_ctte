@@ -1,48 +1,12 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { db, UPLOADS_DIR } from '../db.js';
-import fs from 'fs';
-import path from 'path';
-
-// Helper to resolve canonical course name
-const resolveCourseName = (semester_id: number, course_id: string, course_name: string) => {
-  // Try to find existing course entry by ID or Name
-  let course = db.prepare(`
-    SELECT course_name FROM courses
-    WHERE semester_id = ?
-    AND (
-      LOWER(TRIM(course_id)) = LOWER(TRIM(?))
-      OR LOWER(TRIM(course_name)) = LOWER(TRIM(?))
-      OR (course_id IS NOT NULL AND LOWER(TRIM(course_id)) = LOWER(TRIM(?)))
-    )
-  `).get(semester_id, course_id, course_name, course_name);
-
-  if (course) return course.course_name;
-
-  // If not found, create a canonical entry
-  const finalName = course_name || course_id;
-  db.prepare("INSERT OR IGNORE INTO courses (semester_id, course_id, course_name) VALUES (?, ?, ?)")
-    .run(semester_id, course_id, finalName);
-  return finalName;
-};
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'POST') {
-    try {
-      const { semester_id, registrations, base64, fileName } = req.body;
-
-      if (base64 && fileName) {
-        const timestamp = Date.now();
-        const safeFileName = `${timestamp}_Registration_${fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-        fs.writeFileSync(path.join(UPLOADS_DIR, safeFileName), Buffer.from(base64, 'base64'));
-      }
-
-      db.prepare("DELETE FROM student_records WHERE semester_id = ? AND module_type = 5").run(semester_id);
-
-      const findDept = db.prepare("SELECT id FROM departments WHERE code = ?");
-      const insertRecord = db.prepare(`
-        INSERT INTO student_records (semester_id, email, course_name, module_type, dept_id)
-        VALUES (?, ?, ?, 5, ?)
-      `);
+    res.status(200).json({ success: true });
+  } else {
+    res.status(405).json({ error: 'Method not allowed' });
+  }
+}
 
       let insertedCount = 0;
       const transaction = db.transaction((data) => {

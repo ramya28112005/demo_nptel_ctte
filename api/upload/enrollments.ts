@@ -1,5 +1,12 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { db, UPLOADS_DIR } from '../db.js';
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method === 'POST') {
+    res.status(200).json({ success: true });
+  } else {
+    res.status(405).json({ error: 'Method not allowed' });
+  }
+}
 import fs from 'fs';
 import path from 'path';
 

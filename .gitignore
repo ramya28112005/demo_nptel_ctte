@@ -9,3 +9,4 @@ coverage/
 uploads/
 nptel_system.db
 check_db.js
+.vercel
