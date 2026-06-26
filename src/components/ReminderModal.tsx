@@ -33,7 +33,11 @@ const ReminderModal = ({ type, onClose }: ReminderModalProps) => {
   }, [startDate, endDate, type]);
 
   const handleSend = async () => {
-    const configuredHods = depts.filter(d => d.hod_email);
+    // Refresh departments to get latest saved HOD emails
+    const updatedDepts = await dataService.getDepartments();
+    setDepts(updatedDepts);
+    
+    const configuredHods = updatedDepts.filter(d => d.hod_email);
     if (configuredHods.length === 0) {
       alert("⚠️ SAFETY CHECK FAILED: No HOD emails have been configured in Module 2. Please set up at least one HOD email before sending reminders.");
       return;

@@ -33,7 +33,19 @@ export const dataService = {
     try {
       const res = await fetch(`${API_BASE}/departments`);
       if (!res.ok) throw new Error('API error');
-      return res.json();
+      let depts = await res.json();
+      // Always merge with saved HOD emails from localStorage
+      try {
+        const saved = localStorage.getItem('hod_emails');
+        if (saved) {
+          const savedHods: { id: number; email: string }[] = JSON.parse(saved);
+          const map = new Map(savedHods.map(h => [h.id, h.email]));
+          depts = depts.map(d => ({ ...d, hod_email: map.get(d.id) || d.hod_email }));
+        }
+      } catch (err) {
+        // ignore localStorage issues
+      }
+      return depts;
     } catch (e) {
       // Fallback local list so UI can function without backend
       const depts: Department[] = [

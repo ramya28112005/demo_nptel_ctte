@@ -30,13 +30,17 @@ const UploadData = ({ semester, onUploadComplete }: UploadDataProps) => {
   }, []);
 
   const handleUploadClick = (id: number) => {
-    const configuredHods = depts.filter(d => d.hod_email);
-    if (configuredHods.length === 0) {
-      alert("⚠️ SAFETY CHECK FAILED: No HOD emails have been configured in Module 2. Please set up at least one HOD email before uploading data to ensure the automated dispatch works.");
-      return;
-    }
-    setActiveModuleId(id);
-    fileInputRef.current?.click();
+    // Refresh departments to get latest saved HOD emails
+    dataService.getDepartments().then(updatedDepts => {
+      setDepts(updatedDepts);
+      const configuredHods = updatedDepts.filter(d => d.hod_email);
+      if (configuredHods.length === 0) {
+        alert("⚠️ SAFETY CHECK FAILED: No HOD emails have been configured in Module 2. Please set up at least one HOD email before uploading data to ensure the automated dispatch works.");
+        return;
+      }
+      setActiveModuleId(id);
+      fileInputRef.current?.click();
+    });
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
