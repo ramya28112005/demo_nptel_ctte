@@ -1,5 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { db, UPLOADS_DIR } from '../../lib/db';
+import { db, UPLOADS_DIR } from '../db.js';
 import fs from 'fs';
 import path from 'path';
 
